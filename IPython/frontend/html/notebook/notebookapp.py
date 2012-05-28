@@ -43,7 +43,7 @@ from tornado import web
 # Our own libraries
 from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler, LogoutHandler,
-    ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
+    ProjectDashboardHandler, NewHandler, NamedNotebookHandler, NamedNotebookHandlerAsync,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
     RSTHandler, AuthenticatedFileHandler, PrintNotebookHandler,
@@ -111,7 +111,8 @@ class NotebookWebApplication(web.Application):
             (r"/login", LoginHandler),
             (r"/logout", LogoutHandler),
             (r"/new", NewHandler),
-            (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
+            (r"/%s" % _notebook_id_regex, NamedNotebookHandlerAsync),
+#            (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
             (r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
             (r"/%s/print" % _notebook_id_regex, PrintNotebookHandler),
             (r"/kernels", MainKernelHandler),
@@ -562,4 +563,3 @@ def launch_new_instance():
     app = NotebookApp.instance()
     app.initialize()
     app.start()
-

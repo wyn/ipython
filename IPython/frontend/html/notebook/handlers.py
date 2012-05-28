@@ -23,6 +23,7 @@ import uuid
 
 from tornado import web
 from tornado import websocket
+from tornado import ioloop as tioloop
 
 from zmq.eventloop import ioloop
 from zmq.utils import jsonapi
@@ -292,6 +293,32 @@ class NamedNotebookHandler(AuthenticatedHandler):
             login_available=self.login_available,
             mathjax_url=self.application.ipython_app.mathjax_url,
         )
+
+class NamedNotebookHandlerAsync(AuthenticatedHandler):
+
+    @authenticate_unless_readonly
+    @web.asynchronous
+    def get(self, notebook_id):
+        
+        def _do_render():
+            nbm = self.application.notebook_manager
+            project = nbm.notebook_dir
+            if not nbm.notebook_exists(notebook_id):
+                raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
+            
+            self.render(
+                'notebook.html', project=project,
+                notebook_id=notebook_id,
+                base_project_url=self.application.ipython_app.base_project_url,
+                base_kernel_url=self.application.ipython_app.base_kernel_url,
+                kill_kernel=False,
+                read_only=self.read_only,
+                logged_in=self.logged_in,
+                login_available=self.login_available,
+                mathjax_url=self.application.ipython_app.mathjax_url,
+            )
+        self.tscheduler = tioloop.PeriodicCallback(_do_render, 1000)
+        self.tscheduler.start()
 
 
 class PrintNotebookHandler(AuthenticatedHandler):
